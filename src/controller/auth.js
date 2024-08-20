@@ -1,4 +1,4 @@
-import Joi from 'joi';
+import Joi, { number } from 'joi';
 import jwt from 'jsonwebtoken';
 import User from '../models/user';
 
@@ -36,9 +36,7 @@ export const register = async (req, res, next) => {
     const newUser = new User({ userNum, nick, age, gender, job, favorite });
     await newUser.save();
 
-    const token = jwt.sign({ userNum }, process.env.JWT_SECRET, {
-      expiresIn: '7d',
-    });
+    const token = generateToken(userNum);
 
     // 응답 반환
     return res.status(200).json({ token });
@@ -73,4 +71,67 @@ export const checkNickname = async (req, res, next) => {
     console.error('Error occurred while checking nickname:', error);
     return res.status(500).json({ error: '[서버오류] 관리자에게 문의하세요.' });
   }
+};
+
+export const checkExistUser = async (req, res, next) => {
+  const schema = Joi.object({
+    userNum: Joi.string().required(),
+  });
+
+  const { error } = schema.validate(req.body);
+
+  if (error) {
+    return res.status(400).json({ error: error.details[0].message });
+  }
+
+  const { userNum } = req.body;
+
+  try {
+    const exist = await User.findOne({ userNum });
+    let response = { exists: false, token: null };
+
+    if (exist) {
+      response.exists = true;
+
+      if (req.headers.authorization) {
+        const token = req.headers.authorization.split('Bearer ')[1];
+
+        if (token === undefined) {
+          response.token = jwt.sign({ userNum }, process.env.JWT_SECRET, {
+            expiresIn: '7d',
+          });
+        } else {
+          try {
+            const decoded = generateToken(userNum);
+
+            // 토큰 유효기간 확인
+            const now = Math.floor(Date.now() / 1000); // 현재시간 (초 단위)
+
+            if (decoded.exp - now < 60 * 60 * 24) {
+              response.token = generateToken(userNum);
+            }
+          } catch (e) {
+            if (e.name === 'TokenExpiredError') {
+              response.token = generateToken(userNum);
+            } else {
+              res.status(401).json({ error: 'Invalid token' });
+            }
+          }
+        }
+      } else {
+        response.token = generateToken(userNum);
+      }
+    }
+
+    res.status(200).json({ response });
+  } catch (e) {
+    console.error('Error occurred while checking nickname:', error);
+    return res.status(500).json({ error: '[서버오류] 관리자에게 문의하세요.' });
+  }
+};
+
+const generateToken = ({ userNum }) => {
+  return jwt.sign({ userNum }, process.env.JWT_SECRET, {
+    expiresIn: '7d',
+  });
 };

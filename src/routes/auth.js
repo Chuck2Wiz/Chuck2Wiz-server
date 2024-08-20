@@ -6,7 +6,10 @@ const router = Router();
 // POST /auth/register
 router.post('/register', auth.register);
 
-// POST /auth/check-nickname
+// GET /auth/check-nickname
 router.get('/check-nickname', auth.checkNickname);
+
+// GET /auth/check-existUser
+router.get('/check-existUser', auth.checkExistUser);
 
 export default router;
