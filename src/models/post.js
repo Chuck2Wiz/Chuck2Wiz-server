@@ -1,35 +1,32 @@
 import mongoose, { Schema } from 'mongoose';
 
-const postSchema = new Schema({
-  title: { type: String, required: true, trim: true },
-  content: { type: String, required: true },
-  author: {
-    userNum: {
-      type: String,
-      required: true,
-      ref: 'User',
+const postSchema = new Schema(
+  {
+    title: { type: String, required: true, trim: true },
+    content: { type: String, required: true },
+    author: {
+      userNum: {
+        type: String,
+        required: true,
+        ref: 'User',
+      },
+      nick: { type: String, required: true },
     },
-    nick: { type: String, required: true },
-  },
-  likes: {
-    type: Number,
-    default: 0,
-  },
-  comments: [
-    {
-      type: Schema.Types.ObjectId,
-      ref: 'Comment',
+    likes: {
+      type: Number,
+      default: 0,
     },
-  ],
-  createdAt: {
-    type: Date,
-    default: Date.now(),
+    comments: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Comment',
+      },
+    ],
   },
-  updatedAt: {
-    type: Date,
-    default: Date.now(),
-  },
-});
+  {
+    timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' },
+  }
+);
 
 const Post = mongoose.model('Post', postSchema);
 
