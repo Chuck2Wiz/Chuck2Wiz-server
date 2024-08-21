@@ -12,10 +12,11 @@ const postSchema = new Schema(
       },
       nick: { type: String, required: true },
     },
-    likes: {
-      type: Number,
-      default: 0,
-    },
+    likes: [
+      {
+        userNum: { type: String, required: true },
+      },
+    ],
     comments: [
       {
         type: Schema.Types.ObjectId,
