@@ -1,22 +1,6 @@
 import Joi, { number } from 'joi';
 import Post from '../models/post';
-
-const handleError = (
-  res,
-  error,
-  message = '[서버오류] 관리자에게 문의하세요.'
-) => {
-  console.error(error);
-  return res.status(500).json({ error: message });
-};
-
-const validate = (schema, data) => {
-  const { error } = schema.validate(data);
-  if (error) {
-    return { error: error.details[0].message };
-  }
-  return { error: null };
-};
+import { handleError, validate } from './common/errorhandle';
 
 export const createArticle = async (req, res, next) => {
   const schema = Joi.object({
@@ -39,7 +23,7 @@ export const createArticle = async (req, res, next) => {
     await newArticle.save();
     res.status(201).json({ message: '게시글이 정상적으로 등록되었습니다.' });
   } catch (e) {
-    return res.status(500).json({ error: '[서버오류] 관리자에게 문의하세요.' });
+    return handleError(res, e);
   }
 };
 
@@ -78,9 +62,7 @@ export const updatedArticle = async (req, res, next) => {
     });
   } catch (e) {
     console.error(e);
-    return res.status(500).json({
-      error: '[서버오류] 게시글 수정에 실패했습니다. 관리자에게 문의하세요.',
-    });
+    return handleError(res, e);
   }
 };
 
@@ -133,9 +115,7 @@ export const getArticles = async (req, res, next) => {
     });
   } catch (e) {
     console.error(e);
-    return res.status(500).json({
-      error: '[서버오류] 게시글 조회에 실패했습니다. 관리자에게 문의하세요',
-    });
+    return handleError(res, e);
   }
 };
 
@@ -162,7 +142,7 @@ export const deleteArticle = async (req, res, next) => {
     res.status(200).json({ message: '게시글이 성공적으로 삭제되었습니다.' });
   } catch (e) {
     console.error(e);
-    return res.status(500).json({ error: '[서버오류] 관리자에게 문의하세요.' });
+    return handleError(res, e);
   }
 };
 
