@@ -84,6 +84,13 @@ export const getArticles = async (req, res, next) => {
       .sort({ createdAt: -1 })
       .skip((page - 1) * 10)
       .limit(limit)
+      .populate({
+        path: 'comments',
+        populate: {
+          path: 'replies',
+          model: 'Comment',
+        },
+      })
       .exec();
 
     const totalPosts = await Post.countDocuments();
@@ -100,7 +107,20 @@ export const getArticles = async (req, res, next) => {
         },
         likes: post.likes.length,
         isLikedByUser: userLiked, // 현재 사용자가 좋아요를 눌렀는지 여부
-        comments: post.comments,
+        comments: post.comments.map((comment) => ({
+          ...comment.toObject(),
+          author: {
+            nick: comment.author.nick,
+          },
+          isMyComment: comment.author.userNum === userNum,
+          replies: comment.replies.map((reply) => ({
+            ...reply.toObject(),
+            author: {
+              nick: reply.author.nick,
+            },
+            isMyReply: reply.author.userNum === userNum,
+          })),
+        })),
         createdAt: post.createdAt,
         updatedAt: post.updatedAt,
         isMyArticle: post.author.userNum === userNum, // 현재 사용자가 작성자인지 여부

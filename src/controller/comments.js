@@ -77,3 +77,82 @@ export const createReplies = async (req, res, next) => {
     return handleError(res, e);
   }
 };
+
+export const deleteComment = async (req, res, next) => {
+  const { commentId } = req.params;
+  const schema = Joi.object({
+    userNum: Joi.string().required(),
+  });
+
+  const { error } = validate(schema, req.body);
+  if (error) return res.status(400).json({ error });
+
+  const { userNum } = req.body;
+
+  try {
+    const comment = await Comment.findById(commentId);
+
+    if (!comment) {
+      return res.status(404).json({ error: '댓글을 찾을 수 없습니다' });
+    }
+
+    if (comment.author.userNum !== userNum) {
+      return res.status(403).json({ error: '권한이 없습니다' });
+    }
+
+    // 답글이 있는지 확인
+    if (comment.replies.length > 0) {
+      // 답글이 있으면 댓글 내용을 "삭제된 댓글입니다"로 변경
+      comment.content = '삭제된 댓글입니다';
+      await comment.save();
+      return res
+        .status(200)
+        .json({ message: '댓글이 삭제 상태로 변경되었습니다.' });
+    } else {
+      // 답글이 없으면 댓글을 삭제
+      await comment.remove();
+      return res
+        .status(200)
+        .json({ message: '댓글이 성공적으로 삭제되었습니다.' });
+    }
+  } catch (e) {
+    console.error(e);
+    return handleError(res, e);
+  }
+};
+
+export const updateComment = async (req, res, next) => {
+  const { commentId } = req.params;
+  const schema = Joi.object({
+    userNum: Joi.string().required(),
+    content: Joi.string().min(1).required(),
+  });
+
+  const { error } = validate(schema, req.body);
+  if (error) return res.status(400).json({ error });
+
+  const { userNum, content } = req.body;
+
+  try {
+    const comment = await Comment.findById(commentId);
+
+    if (!comment) {
+      return res.status(404).json({ error: '댓글을 찾을 수 없습니다' });
+    }
+
+    if (comment.author.userNum !== userNum) {
+      return res.status(403).json({ error: '권한이 없습니다' });
+    }
+
+    comment.content = content || comment.content;
+
+    await comment.save();
+
+    res.status(200).json({
+      message: '댓글이 성공적으로 수정되었습니다.',
+    });
+  } catch (e) {
+    console.error(e);
+    return handleError(res, e);
+  }
+};
