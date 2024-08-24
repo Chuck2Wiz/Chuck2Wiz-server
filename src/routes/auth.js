@@ -10,6 +10,6 @@ router.post('/register', auth.register);
 router.get('/check-nickname', auth.checkNickname);
 
 // GET /auth/check-existUser
-router.get('/check-existUser', auth.checkExistUser);
+router.get('/check-existUser/:userNum', auth.checkExistUser);
 
 export default router;

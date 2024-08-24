@@ -1,6 +1,7 @@
 import Joi, { number } from 'joi';
 import jwt from 'jsonwebtoken';
 import User from '../models/user';
+import { validate } from './common/errorhandle';
 
 export const register = async (req, res, next) => {
   // 입력 데이터 검증을 위한 Joi 스키마 정의
@@ -74,17 +75,7 @@ export const checkNickname = async (req, res, next) => {
 };
 
 export const checkExistUser = async (req, res, next) => {
-  const schema = Joi.object({
-    userNum: Joi.string().required(),
-  });
-
-  const { error } = schema.validate(req.body);
-
-  if (error) {
-    return res.status(400).json({ error: error.details[0].message });
-  }
-
-  const { userNum } = req.body;
+  const { userNum } = req.params;
 
   try {
     const exist = await User.findOne({ userNum });
