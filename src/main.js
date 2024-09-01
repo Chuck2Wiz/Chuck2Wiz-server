@@ -21,7 +21,12 @@ const app = express();
 
 app.set('port', PORT || 8001);
 
-app.use(morgan('dev'));
+if (process.env.NODE_ENV === 'production') {
+  app.use(morgan('combined'));
+} else {
+  app.use(morgan('dev'));
+}
+
 app.use(express.json());
 
 app.use('/api/v1/auth', authRouter);
