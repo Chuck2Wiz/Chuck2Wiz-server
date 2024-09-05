@@ -1,9 +1,10 @@
 {
-  "apps": [
-    {
-      "name": "project-name",
-      "script": "./src/index.js",
-      "watch": true
-    }
-  ]
+    "apps": [
+        {
+            "name": "project-name",
+            "script": "./src/node_modules/.bin/ts-node",
+            "args": "./src/index.ts",
+            "watch": true
+        }
+    ]
 }
