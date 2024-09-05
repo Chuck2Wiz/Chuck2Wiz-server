@@ -2,7 +2,7 @@
     "apps": [
         {
             "name": "project-name",
-            "args": "./index.js",
+            "script": "./index.js",
             "watch": true
         }
     ]
