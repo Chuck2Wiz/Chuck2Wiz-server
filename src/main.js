@@ -1,4 +1,4 @@
-require('dotenv').config();
+import 'dotenv/config'; // dotenv를 ES 모듈 방식으로 로드
 import mongoose from 'mongoose';
 import express from 'express';
 import authRouter from './routes/auth';
