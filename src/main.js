@@ -8,6 +8,8 @@ import morgan from 'morgan';
 
 const { PORT, MONGO_URI } = process.env;
 
+console.log('MONGO_URI:', process.env.MONGO_URI);
+
 mongoose
   .connect(MONGO_URI)
   .then(() => {
