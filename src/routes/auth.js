@@ -7,7 +7,7 @@ const router = Router();
 router.post('/register', auth.register);
 
 // GET /auth/check-nickname
-router.get('/check-nickname', auth.checkNickname);
+router.get('/check-nickname/:nickName', auth.checkNickname);
 
 // GET /auth/check-existUser
 router.get('/check-existUser/:userNum', auth.checkExistUser);

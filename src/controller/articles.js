@@ -37,7 +37,7 @@ export const updatedArticle = async (req, res, next) => {
     userNum: Joi.string().required(),
   });
 
-  const { error } = validate(schema, req.body);
+  const { error } = validate(schema, req.params);
   if (error) return res.status(400).json({ success: false, message: error });
 
   const { title, content, userNum } = req.body;
@@ -71,14 +71,14 @@ export const updatedArticle = async (req, res, next) => {
 };
 
 export const getArticles = async (req, res, next) => {
-  const { page = 1 } = req.query;
+  const { page = 1 } = req.params;
   const limit = 10;
 
   const schema = Joi.object({
     userNum: Joi.string().required(),
   });
 
-  const { error } = validate(schema, req.body);
+  const { error } = validate(schema, { page });
   if (error) return res.status(400).json({ success: false, message: error });
 
   const { userNum } = req.body;
@@ -151,7 +151,7 @@ export const deleteArticle = async (req, res, next) => {
     userNum: Joi.string().required(),
   });
 
-  const { error } = validate(schema, req.body);
+  const { error } = validate(schema, req.params);
   if (error) return res.status(400).json({ success: false, message: error });
 
   const { userNum } = req.body;
@@ -181,7 +181,7 @@ export const likeArticle = async (req, res, next) => {
     userNum: Joi.string().required(),
   });
 
-  const { error } = validate(schema, req.body);
+  const { error } = validate(schema, req.params);
   if (error) return res.status(400).json({ success: false, message: error });
 
   try {
@@ -217,7 +217,7 @@ export const unlikeArticle = async (req, res, next) => {
     userNum: Joi.string().required(),
   });
 
-  const { error } = validate(schema, req.body);
+  const { error } = validate(schema, req.params);
   if (error) return res.status(400).json({ success: false, message: error });
 
   try {

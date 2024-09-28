@@ -7,7 +7,7 @@ const router = Router();
 router.post('', articles.createArticle);
 
 // GET /articles (with pagination)
-router.get('', articles.getArticles);
+router.get('/:page', articles.getArticles);
 
 // PUT /articles/:articleId
 router.put('/:articleId', articles.updatedArticle);

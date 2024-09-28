@@ -52,7 +52,7 @@ export const createReplies = async (req, res, next) => {
     content: Joi.string().min(1),
   });
 
-  const { error } = validate(schema, req.body);
+  const { error } = validate(schema, req.params);
   if (error) return res.status(400).json({ success: false, message: error });
 
   const parentComment = await Comment.findById(commentId);
@@ -92,7 +92,7 @@ export const deleteComment = async (req, res, next) => {
     userNum: Joi.string().required(),
   });
 
-  const { error } = validate(schema, req.body);
+  const { error } = validate(schema, req.params);
   if (error) return res.status(400).json({ success: false, message: error });
 
   const { userNum } = req.body;
@@ -140,7 +140,7 @@ export const updateComment = async (req, res, next) => {
     content: Joi.string().min(1).required(),
   });
 
-  const { error } = validate(schema, req.body);
+  const { error } = validate(schema, req.params);
   if (error) return res.status(400).json({ success: false, message: error });
 
   const { userNum, content } = req.body;

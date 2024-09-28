@@ -52,10 +52,10 @@ export const register = async (req, res, next) => {
 
 export const checkNickname = async (req, res, next) => {
   const schema = Joi.object({
-    nick: Joi.string().min(1).max(10).required(),
+    nickName: Joi.string().min(1).max(10).required(),
   });
 
-  const { error } = schema.validate(req.body);
+  const { error } = schema.validate(req.params); // req.params로 변경
 
   if (error) {
     return res
@@ -63,10 +63,10 @@ export const checkNickname = async (req, res, next) => {
       .json({ success: false, message: error.details[0].message });
   }
 
-  const { nick } = req.body;
+  const { nick } = req.params;
 
   try {
-    const exist = await User.findOne({ nick });
+    const exist = await User.findOne({ nick: nick });
 
     if (exist) {
       return res
