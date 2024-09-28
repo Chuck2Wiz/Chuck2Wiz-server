@@ -4,12 +4,11 @@ import User from '../models/user';
 import { validate } from './common/errorhandle';
 
 export const register = async (req, res, next) => {
-  // 입력 데이터 검증을 위한 Joi 스키마 정의
   const schema = Joi.object({
     userNum: Joi.string().required(),
     nick: Joi.string().min(1).max(10).required(),
     age: Joi.number().integer().min(0).required(),
-    gender: Joi.string().valid('MALE', 'FEMALE', 'OTHER').required(), // 특정 값만 허용
+    gender: Joi.string().valid('MALE', 'FEMALE', 'OTHER').required(),
     job: Joi.string()
       .valid('STUDENT', 'HOUSEWIFE', 'WORKER', 'PROFESSIONAL', 'OTHER')
       .required(),
@@ -18,7 +17,9 @@ export const register = async (req, res, next) => {
 
   const { error } = schema.validate(req.body);
   if (error) {
-    return res.status(400).json({ error: error.details[0].message });
+    return res
+      .status(400)
+      .json({ success: false, message: error.details[0].message });
   }
 
   const { userNum, nick, age, gender, job, favorite } = req.body;
@@ -26,12 +27,16 @@ export const register = async (req, res, next) => {
   try {
     let exists = await User.findOne({ userNum });
     if (exists) {
-      return res.status(409).json({ error: '이미 가입된 회원입니다.' });
+      return res
+        .status(409)
+        .json({ success: false, message: '이미 가입된 회원입니다.' });
     }
 
     exists = await User.findOne({ nick });
     if (exists) {
-      return res.status(409).json({ error: '이미 존재하는 닉네임입니다.' });
+      return res
+        .status(409)
+        .json({ success: false, message: '이미 존재하는 닉네임입니다.' });
     }
 
     const newUser = new User({ userNum, nick, age, gender, job, favorite });
@@ -39,11 +44,9 @@ export const register = async (req, res, next) => {
 
     const token = generateToken(userNum);
 
-    // 응답 반환
-    return res.status(200).json({ token });
+    return res.status(200).json({ success: true, message: token });
   } catch (e) {
-    // 에러 처리
-    return res.status(500).json({ error: e.message });
+    return res.status(500).json({ success: false, message: e.message });
   }
 };
 
@@ -55,7 +58,9 @@ export const checkNickname = async (req, res, next) => {
   const { error } = schema.validate(req.body);
 
   if (error) {
-    return res.status(400).json({ error: error.details[0].message });
+    return res
+      .status(400)
+      .json({ success: false, message: error.details[0].message });
   }
 
   const { nick } = req.body;
@@ -64,13 +69,19 @@ export const checkNickname = async (req, res, next) => {
     const exist = await User.findOne({ nick });
 
     if (exist) {
-      return res.status(409).json({ error: '이미 존재하는 닉네임입니다.' });
+      return res
+        .status(409)
+        .json({ success: false, message: '이미 존재하는 닉네임입니다.' });
     }
 
-    return res.status(200).json({ message: '사용가능한 닉네임입니다.' });
+    return res
+      .status(200)
+      .json({ success: true, message: '사용가능한 닉네임입니다.' });
   } catch (error) {
     console.error('Error occurred while checking nickname:', error);
-    return res.status(500).json({ error: '[서버오류] 관리자에게 문의하세요.' });
+    return res
+      .status(500)
+      .json({ success: false, message: '[서버오류] 관리자에게 문의하세요.' });
   }
 };
 
@@ -95,8 +106,7 @@ export const checkExistUser = async (req, res, next) => {
           try {
             const decoded = generateToken(userNum);
 
-            // 토큰 유효기간 확인
-            const now = Math.floor(Date.now() / 1000); // 현재시간 (초 단위)
+            const now = Math.floor(Date.now() / 1000);
 
             if (decoded.exp - now < 60 * 60 * 24) {
               response.token = generateToken(userNum);
@@ -105,7 +115,9 @@ export const checkExistUser = async (req, res, next) => {
             if (e.name === 'TokenExpiredError') {
               response.token = generateToken(userNum);
             } else {
-              res.status(401).json({ error: 'Invalid token' });
+              return res
+                .status(401)
+                .json({ success: false, message: 'Invalid token' });
             }
           }
         }
@@ -114,10 +126,12 @@ export const checkExistUser = async (req, res, next) => {
       }
     }
 
-    res.status(200).json({ response });
+    res.status(200).json({ success: true, message: response });
   } catch (e) {
-    console.error('Error occurred while checking nickname:', error);
-    return res.status(500).json({ error: '[서버오류] 관리자에게 문의하세요.' });
+    console.error('Error occurred while checking user existence:', e);
+    return res
+      .status(500)
+      .json({ success: false, message: '[서버오류] 관리자에게 문의하세요.' });
   }
 };
 
