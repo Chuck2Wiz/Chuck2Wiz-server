@@ -69,14 +69,22 @@ export const checkNickname = async (req, res, next) => {
     const exist = await User.findOne({ nick: nickName });
 
     if (exist) {
-      return res
-        .status(200)
-        .json({ success: true, message: '이미 존재하는 닉네임입니다.' });
+      return res.status(200).json({
+        success: true,
+        message: {
+          exists: true,
+          message: '이미 존재하는 닉네임입니다.',
+        },
+      });
     }
 
-    return res
-      .status(200)
-      .json({ success: true, message: '사용가능한 닉네임입니다.' });
+    return res.status(200).json({
+      success: true,
+      message: {
+        exists: false,
+        message: '사용가능한 닉네임입니다.',
+      },
+    });
   } catch (error) {
     console.error('Error occurred while checking nickname:', error);
     return res
