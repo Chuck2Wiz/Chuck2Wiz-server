@@ -4,13 +4,13 @@ export const handleError = (
   message = '[서버오류] 관리자에게 문의하세요.'
 ) => {
   console.error(error);
-  return res.status(500).json({ success: false, message: message });
+  return baseResponse(res, false, { message });
 };
 
 export const validate = (schema, data) => {
   const { error } = schema.validate(data);
   if (error) {
-    return { success: false, message: error.details[0].message };
+    return { message: error.details[0].message };
   }
-  return { success: false, message: null };
+  return { message: null };
 };
