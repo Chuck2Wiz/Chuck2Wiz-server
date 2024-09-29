@@ -2,6 +2,7 @@ import Joi from 'joi';
 import Post from '../models/post';
 import Comment from '../models/comment';
 import { handleError, validate } from './common/errorhandle';
+import { baseResponse } from './common/baseResponse';
 
 export const createComment = async (req, res, next) => {
   const schema = Joi.object({
@@ -22,9 +23,9 @@ export const createComment = async (req, res, next) => {
     const post = await Post.findById(postId);
 
     if (!post) {
-      return res
-        .status(404)
-        .json({ success: false, message: '게시글을 찾을 수 없습니다' });
+      return baseResponse(res, false, {
+        message: '게시글을 찾을 수 없습니다.',
+      });
     }
 
     const comment = new Comment({ postId, author, content, replies: [] });
@@ -33,9 +34,9 @@ export const createComment = async (req, res, next) => {
     post.comments.push(comment._id);
     await post.save();
 
-    res
-      .status(201)
-      .json({ success: true, message: '댓글이 성공적으로 등록되었습니다' });
+    return baseResponse(res, true, {
+      message: '댓글이 정상적으로 등록되었습니다.',
+    });
   } catch (e) {
     console.error(e);
     return handleError(res, e);
@@ -53,13 +54,11 @@ export const createReplies = async (req, res, next) => {
   });
 
   const { error } = validate(schema, req.params);
-  if (error) return res.status(400).json({ success: false, message: error });
+  if (error) return baseResponse(res, false, { error });
 
   const parentComment = await Comment.findById(commentId);
   if (!parentComment) {
-    return res
-      .status(404)
-      .json({ success: false, message: '댓글을 찾을 수 없습니다' });
+    return baseResponse(res, false, { message: '댓글을 찾을 수 없습니다.' });
   }
 
   const { author, content } = req.body;
@@ -77,9 +76,9 @@ export const createReplies = async (req, res, next) => {
     parentComment.replies.push(reply._id);
     await parentComment.save();
 
-    res
-      .status(201)
-      .json({ success: true, message: '답글이 성공적으로 등록되었습니다' });
+    return baseResponse(res, true, {
+      message: '답글이 성공적으로 등록되었습니다.',
+    });
   } catch (e) {
     console.error(e);
     return handleError(res, e);
@@ -93,7 +92,7 @@ export const deleteComment = async (req, res, next) => {
   });
 
   const { error } = validate(schema, req.params);
-  if (error) return res.status(400).json({ success: false, message: error });
+  if (error) return baseResponse(res, false, { error });
 
   const { userNum } = req.body;
 
@@ -101,15 +100,11 @@ export const deleteComment = async (req, res, next) => {
     const comment = await Comment.findById(commentId);
 
     if (!comment) {
-      return res
-        .status(404)
-        .json({ success: false, message: '댓글을 찾을 수 없습니다' });
+      return baseResponse(res, false, { message: '댓글을 찾을 수 없습니다.' });
     }
 
     if (comment.author.userNum !== userNum) {
-      return res
-        .status(403)
-        .json({ success: false, message: '권한이 없습니다' });
+      return baseResponse(res, false, { message: '권한이 없습니다.' });
     }
 
     // 답글이 있는지 확인
@@ -117,15 +112,15 @@ export const deleteComment = async (req, res, next) => {
       // 답글이 있으면 댓글 내용을 "삭제된 댓글입니다"로 변경
       comment.content = '삭제된 댓글입니다';
       await comment.save();
-      return res
-        .status(200)
-        .json({ success: true, message: '댓글이 삭제 상태로 변경되었습니다.' });
+      return baseResponse(res, true, {
+        message: '댓글이 삭제상태가 되었습니다.',
+      });
     } else {
       // 답글이 없으면 댓글을 삭제
       await comment.remove();
-      return res
-        .status(200)
-        .json({ success: true, message: '댓글이 성공적으로 삭제되었습니다.' });
+      return baseResponse(res, true, {
+        message: '댓글이 정상적으로 삭제되었습니다.',
+      });
     }
   } catch (e) {
     console.error(e);
@@ -141,7 +136,7 @@ export const updateComment = async (req, res, next) => {
   });
 
   const { error } = validate(schema, req.params);
-  if (error) return res.status(400).json({ success: false, message: error });
+  if (error) return baseResponse(res, false, { error });
 
   const { userNum, content } = req.body;
 
@@ -149,23 +144,18 @@ export const updateComment = async (req, res, next) => {
     const comment = await Comment.findById(commentId);
 
     if (!comment) {
-      return res
-        .status(404)
-        .json({ success: false, message: '댓글을 찾을 수 없습니다' });
+      return baseResponse(res, false, { message: '댓글을 찾을 수 없습니다.' });
     }
 
     if (comment.author.userNum !== userNum) {
-      return res
-        .status(403)
-        .json({ success: false, message: '권한이 없습니다' });
+      return baseResponse(res, false, { message: '권한이 없습니다.' });
     }
 
     comment.content = content || comment.content;
 
     await comment.save();
 
-    res.status(200).json({
-      success: true,
+    return baseResponse(res, true, {
       message: '댓글이 성공적으로 수정되었습니다.',
     });
   } catch (e) {

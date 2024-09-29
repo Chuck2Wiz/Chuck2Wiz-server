@@ -1,6 +1,7 @@
 import Joi from 'joi';
 import Post from '../models/post';
 import { handleError, validate } from './common/errorhandle';
+import { baseResponse } from './common/baseResponse';
 
 export const createArticle = async (req, res, next) => {
   const schema = Joi.object({

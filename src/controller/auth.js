@@ -1,7 +1,7 @@
 import Joi, { number } from 'joi';
 import jwt from 'jsonwebtoken';
 import User from '../models/user';
-import { validate } from './common/errorhandle';
+import { baseResponse } from './common/baseResponse';
 
 export const register = async (req, res, next) => {
   const schema = Joi.object({
