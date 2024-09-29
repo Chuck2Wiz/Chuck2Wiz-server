@@ -63,10 +63,10 @@ export const checkNickname = async (req, res, next) => {
       .json({ success: false, message: error.details[0].message });
   }
 
-  const { nick } = req.params;
+  const { nickName } = req.params;
 
   try {
-    const exist = await User.findOne({ nick: nick });
+    const exist = await User.findOne({ nick: nickName });
 
     if (exist) {
       return res
