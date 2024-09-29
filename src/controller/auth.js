@@ -2,6 +2,7 @@ import Joi, { number } from 'joi';
 import jwt from 'jsonwebtoken';
 import User from '../models/user';
 import { baseResponse } from './common/baseResponse';
+import { handleError } from './common/errorhandle';
 
 export const register = async (req, res, next) => {
   const schema = Joi.object({
@@ -17,7 +18,7 @@ export const register = async (req, res, next) => {
 
   const { error } = schema.validate(req.body);
   if (error) {
-    return baseResponse(res, false, { message: error.details[0].message });
+    return baseResponse(res, false, error.details[0].message);
   }
 
   const { userNum, nick, age, gender, job, favorite } = req.body;
@@ -25,16 +26,14 @@ export const register = async (req, res, next) => {
   try {
     let exists = await User.findOne({ userNum });
     if (exists) {
-      return baseResponse(res, false, {
-        message: '이미 가입된 회원입니다.',
+      return baseResponse(res, false, '이미 가입된 회원입니다.', {
         token: null,
       });
     }
 
     exists = await User.findOne({ nick });
     if (exists) {
-      return baseResponse(res, false, {
-        message: '이미 존재하는 닉네임입니다.',
+      return baseResponse(res, false, '이미 존재하는 닉네임입니다.', {
         token: null,
       });
     }
@@ -44,15 +43,11 @@ export const register = async (req, res, next) => {
 
     const token = generateToken(userNum);
 
-    return baseResponse(res, true, {
-      message: '회원가입에 성공했습니다.',
-      token,
+    return baseResponse(res, true, '회원가입에 성공했습니다.', {
+      token: token,
     });
   } catch (e) {
-    return baseResponse(res, false, {
-      message: '회원가입에 실패했습니다.',
-      token: null,
-    });
+    return handleError(res, e);
   }
 };
 
@@ -64,7 +59,7 @@ export const checkNickname = async (req, res, next) => {
   const { error } = schema.validate(req.params);
 
   if (error) {
-    return baseResponse(res, false, { message: error.details[0].message });
+    return baseResponse(res, false, error.details[0].message);
   }
 
   const { nickName } = req.params;
@@ -73,27 +68,23 @@ export const checkNickname = async (req, res, next) => {
     const exist = await User.findOne({ nick: nickName });
 
     if (exist) {
-      return baseResponse(res, true, {
+      return baseResponse(res, true, '이미 존재하는 닉네임입니다.', {
         exists: true,
-        message: '이미 존재하는 닉네임입니다.',
       });
     }
 
-    return baseResponse(res, true, {
+    return baseResponse(res, true, '사용가능한 닉네임입니다.', {
       exists: false,
-      message: '사용가능한 닉네임입니다.',
     });
-  } catch (error) {
-    console.error('Error occurred while checking nickname:', error);
-    return baseResponse(res, false, {
-      message: '[서버오류] 관리자에게 문의하세요.',
-    });
+  } catch (e) {
+    return handleError(res, e);
   }
 };
 
 export const checkExistUser = async (req, res, next) => {
   const { userNum } = req.params;
-  let response = { message: '', exists: false, token: null };
+  let message = '';
+  let response = { exists: false, token: null };
 
   try {
     const exist = await User.findOne({ userNum });
@@ -121,8 +112,8 @@ export const checkExistUser = async (req, res, next) => {
             if (e.name === 'TokenExpiredError') {
               response.token = generateToken(userNum);
             } else {
-              response.message = '[서버오류] 토큰 생성에 실패했습니다.';
-              return baseResponse(res, false, response);
+              message = '[서버오류] 토큰 생성에 실패했습니다.';
+              return baseResponse(res, false, message, { response });
             }
           }
         }
@@ -131,11 +122,10 @@ export const checkExistUser = async (req, res, next) => {
       }
     }
 
-    return baseResponse(res, true, response);
+    message = '유저정보 조회를 성공했습니다..';
+    return baseResponse(res, true, message, { response });
   } catch (e) {
-    console.error('Error occurred while checking user existence:', e);
-    response.message = { message: '[서버오류] 관리자에게 문의하세요.' };
-    return baseResponse(res, false, response);
+    return handleError(res, e);
   }
 };
 
