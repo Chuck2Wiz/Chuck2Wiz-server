@@ -10,6 +10,8 @@ const { PORT, MONGO_URI } = process.env;
 
 console.log('MONGO_URI:', process.env.MONGO_URI);
 
+mongoose.set('strictQuery', true);
+
 mongoose
   .connect(MONGO_URI)
   .then(() => {
@@ -19,17 +21,11 @@ mongoose
     console.error(e);
   });
 
-mongoose.set('strictQuery', true);
-
 const app = express();
 
 app.set('port', PORT || 8001);
 
-if (process.env.NODE_ENV === 'production') {
-  app.use(morgan('combined'));
-} else {
-  app.use(morgan('dev'));
-}
+app.use(morgan('combined'));
 
 app.use(express.json());
 
