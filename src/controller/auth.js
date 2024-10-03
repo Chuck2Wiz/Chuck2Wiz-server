@@ -13,7 +13,20 @@ export const register = async (req, res, next) => {
     job: Joi.string()
       .valid('STUDENT', 'HOUSEWIFE', 'WORKER', 'PROFESSIONAL', 'OTHER')
       .required(),
-    favorite: Joi.array().items(Joi.string().min(1).max(30)).max(3),
+    favorite: Joi.array()
+      .items(
+        Joi.string().valid(
+          'TRAFFIC_ACCIDENT',
+          'DEFAMATION',
+          'RENTAL',
+          'DIVORCE',
+          'ASSAULT',
+          'FRAUD',
+          'SEX_CRIME',
+          'COPYRIGHT'
+        )
+      )
+      .max(3),
   });
 
   const { error } = schema.validate(req.body);
