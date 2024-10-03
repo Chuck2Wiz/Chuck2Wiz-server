@@ -29,7 +29,7 @@ export const register = async (req, res, next) => {
       .max(3),
   });
 
-  const { error } = schema.validate(req.body);
+  const { error } = schema.validate(req.body) || {};
   if (error) {
     return baseResponse(res, false, error.details[0].message);
   }
@@ -69,7 +69,7 @@ export const checkNickname = async (req, res, next) => {
     nickName: Joi.string().min(1).max(10).required(),
   });
 
-  const { error } = schema.validate(req.params);
+  const { error } = schema.validate(req.params) || {};
 
   if (error) {
     return baseResponse(res, false, error.details[0].message);

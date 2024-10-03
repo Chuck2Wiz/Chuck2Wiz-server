@@ -13,7 +13,7 @@ export const createArticle = async (req, res, next) => {
     }).required(),
   });
 
-  const { error } = validate(schema, req.body);
+  const { error } = validate(schema, req.body) || {};
   if (error) return baseResponse(res, false, error);
 
   const { title, content, author } = req.body;
@@ -36,7 +36,7 @@ export const updatedArticle = async (req, res, next) => {
     userNum: Joi.string().required(),
   });
 
-  const { error } = validate(schema, req.params);
+  const { error } = validate(schema, req.params) || {};
   if (error) return baseResponse(res, false, { error });
 
   const { title, content, userNum } = req.body;
@@ -71,7 +71,7 @@ export const getArticles = async (req, res, next) => {
     userNum: Joi.string().required(),
   });
 
-  const { error } = validate(schema, { page });
+  const { error } = validate(schema, { page }) || {};
   if (error) return baseResponse(res, false, error);
 
   const { userNum } = req.body;
@@ -142,7 +142,7 @@ export const deleteArticle = async (req, res, next) => {
     userNum: Joi.string().required(),
   });
 
-  const { error } = validate(schema, req.params);
+  const { error } = validate(schema, req.params) || {};
   if (error) return baseResponse(res, false, error);
 
   const { userNum } = req.body;
@@ -168,7 +168,7 @@ export const likeArticle = async (req, res, next) => {
     userNum: Joi.string().required(),
   });
 
-  const { error } = validate(schema, req.params);
+  const { error } = validate(schema, req.params) || {};
   if (error) return baseResponse(res, false, error);
 
   try {
@@ -201,7 +201,7 @@ export const unlikeArticle = async (req, res, next) => {
     userNum: Joi.string().required(),
   });
 
-  const { error } = validate(schema, req.params);
+  const { error } = validate(schema, req.params) || {};
   if (error) return baseResponse(res, false, error);
 
   try {
