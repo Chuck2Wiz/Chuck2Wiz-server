@@ -8,7 +8,7 @@ import morgan from 'morgan';
 
 const { PORT, MONGO_URI } = process.env;
 
-console.log('MONGO_URI:', process.env.MONGO_URI);
+console.log('MONGO_URI:', MONGO_URI); // 수정: process.env.MONGO_URI를 MONGO_URI로 변경하여 가독성 향상
 
 mongoose.set('strictQuery', true);
 
@@ -25,7 +25,12 @@ const app = express();
 
 app.set('port', PORT || 8001);
 
-app.use(morgan('combined'));
+// morgan 미들웨어 설정: production 환경에서는 combined 포맷 사용
+if (process.env.NODE_ENV === 'production') {
+  app.use(morgan('combined'));
+} else {
+  app.use(morgan('dev')); // 개발 환경에서는 dev 포맷 사용
+}
 
 app.use(express.json());
 
