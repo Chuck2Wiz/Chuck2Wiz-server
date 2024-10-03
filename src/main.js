@@ -19,6 +19,8 @@ mongoose
     console.error(e);
   });
 
+mongoose.set('strictQuery', true);
+
 const app = express();
 
 app.set('port', PORT || 8001);
