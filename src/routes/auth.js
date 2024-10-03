@@ -12,4 +12,7 @@ router.get('/check-nickname/:nickName', auth.checkNickname);
 // GET /auth/check-existUser
 router.get('/check-existUser/:userNum', auth.checkExistUser);
 
+// Get /auth/user/:userNum
+router.get('/user/:userNum', auth.getUserInfo);
+
 export default router;

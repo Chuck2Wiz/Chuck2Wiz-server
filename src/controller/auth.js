@@ -142,6 +142,24 @@ export const checkExistUser = async (req, res, next) => {
   }
 };
 
+export const getUserInfo = async (req, res, next) => {
+  const { userNum } = req.params;
+
+  try {
+    if (userNum !== '') {
+      const response = await User.findOne({ userNum: userNum });
+
+      if (!response) {
+        return baseResponse(res, false, '없는 회원입니다.');
+      }
+
+      return baseResponse(res, true, '유저조회에 성공했습니다.', response);
+    }
+  } catch (e) {
+    return handleError(res, e);
+  }
+};
+
 const generateToken = ({ userNum }) => {
   return jwt.sign({ userNum }, process.env.JWT_SECRET, {
     expiresIn: '7d',
