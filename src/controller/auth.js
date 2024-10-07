@@ -135,7 +135,7 @@ export const checkExistUser = async (req, res, next) => {
       }
     }
 
-    message = '유저정보 조회를 성공했습니다..';
+    message = '유저정보 조회를 성공했습니다.';
     return baseResponse(res, true, message, { response });
   } catch (e) {
     return handleError(res, e);
