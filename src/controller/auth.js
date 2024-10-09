@@ -1,7 +1,6 @@
-import Joi, { number } from 'joi';
+import Joi from 'joi';
 import jwt from 'jsonwebtoken';
 import User from '../models/user';
-import { baseResponse } from './common/baseResponse';
 import { handleError } from './common/errorhandle';
 
 export const register = async (req, res, next) => {
@@ -31,7 +30,11 @@ export const register = async (req, res, next) => {
 
   const { error } = schema.validate(req.body) || {};
   if (error) {
-    return baseResponse(res, false, error.details[0].message);
+    return res.status(400).json({
+      success: false,
+      message: error.details[0].message,
+      data: null,
+    });
   }
 
   const { userNum, nick, age, gender, job, favorite } = req.body;
@@ -39,15 +42,19 @@ export const register = async (req, res, next) => {
   try {
     let exists = await User.findOne({ userNum });
     if (exists) {
-      return baseResponse(res, false, '이미 가입된 회원입니다.', {
-        token: null,
+      return res.status(400).json({
+        success: false,
+        message: '이미 가입된 회원입니다.',
+        data: { token: null },
       });
     }
 
     exists = await User.findOne({ nick });
     if (exists) {
-      return baseResponse(res, false, '이미 존재하는 닉네임입니다.', {
-        token: null,
+      return res.status(400).json({
+        success: false,
+        message: '이미 존재하는 닉네임입니다.',
+        data: { token: null },
       });
     }
 
@@ -56,8 +63,10 @@ export const register = async (req, res, next) => {
 
     const token = generateToken(userNum);
 
-    return baseResponse(res, true, '회원가입에 성공했습니다.', {
-      token: token,
+    return res.status(200).json({
+      success: true,
+      message: '회원가입에 성공했습니다.',
+      data: { token: token },
     });
   } catch (e) {
     return handleError(res, e);
@@ -72,7 +81,11 @@ export const checkNickname = async (req, res, next) => {
   const { error } = schema.validate(req.params) || {};
 
   if (error) {
-    return baseResponse(res, false, error.details[0].message);
+    return res.status(400).json({
+      success: false,
+      message: error.details[0].message,
+      data: null,
+    });
   }
 
   const { nickName } = req.params;
@@ -81,13 +94,17 @@ export const checkNickname = async (req, res, next) => {
     const exist = await User.findOne({ nick: nickName });
 
     if (exist) {
-      return baseResponse(res, true, '이미 존재하는 닉네임입니다.', {
-        exists: true,
+      return res.status(200).json({
+        success: true,
+        message: '이미 존재하는 닉네임입니다.',
+        data: { exists: true },
       });
     }
 
-    return baseResponse(res, true, '사용가능한 닉네임입니다.', {
-      exists: false,
+    return res.status(200).json({
+      success: true,
+      message: '사용가능한 닉네임입니다.',
+      data: { exists: false },
     });
   } catch (e) {
     return handleError(res, e);
@@ -114,7 +131,7 @@ export const checkExistUser = async (req, res, next) => {
           });
         } else {
           try {
-            const decoded = generateToken(userNum);
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
             const now = Math.floor(Date.now() / 1000);
 
@@ -126,7 +143,11 @@ export const checkExistUser = async (req, res, next) => {
               response.token = generateToken(userNum);
             } else {
               message = '[서버오류] 토큰 생성에 실패했습니다.';
-              return baseResponse(res, false, message, { response });
+              return res.status(500).json({
+                success: false,
+                message: message,
+                data: { response },
+              });
             }
           }
         }
@@ -136,7 +157,11 @@ export const checkExistUser = async (req, res, next) => {
     }
 
     message = '유저정보 조회를 성공했습니다.';
-    return baseResponse(res, true, message, { response });
+    return res.status(200).json({
+      success: true,
+      message: message,
+      data: { response },
+    });
   } catch (e) {
     return handleError(res, e);
   }
@@ -150,17 +175,25 @@ export const getUserInfo = async (req, res, next) => {
       const response = await User.findOne({ userNum: userNum });
 
       if (!response) {
-        return baseResponse(res, false, '없는 회원입니다.');
+        return res.status(400).json({
+          success: false,
+          message: '없는 회원입니다.',
+          data: null,
+        });
       }
 
-      return baseResponse(res, true, '유저조회에 성공했습니다.', response);
+      return res.status(200).json({
+        success: true,
+        message: '유저조회에 성공했습니다.',
+        data: response,
+      });
     }
   } catch (e) {
     return handleError(res, e);
   }
 };
 
-const generateToken = ({ userNum }) => {
+const generateToken = (userNum) => {
   return jwt.sign({ userNum }, process.env.JWT_SECRET, {
     expiresIn: '7d',
   });

@@ -1,7 +1,6 @@
 import Joi from 'joi';
 import Post from '../models/post';
 import { handleError, validate } from './common/errorhandle';
-import { baseResponse } from './common/baseResponse';
 
 export const createArticle = async (req, res, next) => {
   const schema = Joi.object({
@@ -14,14 +13,24 @@ export const createArticle = async (req, res, next) => {
   });
 
   const { error } = validate(schema, req.body) || {};
-  if (error) return baseResponse(res, false, error);
+  if (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.details[0].message,
+      data: {},
+    });
+  }
 
   const { title, content, author } = req.body;
 
   try {
     const newArticle = new Post({ title, content, author });
     await newArticle.save();
-    return baseResponse(res, true, '게시글이 정상적으로 등록되었습니다.');
+    return res.status(200).json({
+      success: true,
+      message: '게시글이 정상적으로 등록되었습니다.',
+      data: {},
+    });
   } catch (e) {
     return handleError(res, e);
   }
@@ -37,7 +46,13 @@ export const updatedArticle = async (req, res, next) => {
   });
 
   const { error } = validate(schema, req.params) || {};
-  if (error) return baseResponse(res, false, { error });
+  if (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.details[0].message,
+      data: {},
+    });
+  }
 
   const { title, content, userNum } = req.body;
 
@@ -45,18 +60,30 @@ export const updatedArticle = async (req, res, next) => {
     const post = await Post.findById(articleId);
 
     if (!post) {
-      return baseResponse(res, false, '게시글을 찾을 수 없습니다.');
+      return res.status(404).json({
+        success: false,
+        message: '게시글을 찾을 수 없습니다.',
+        data: {},
+      });
     }
 
     if (post.author.userNum !== userNum) {
-      return baseResponse(res, false, '권한이 없습니다.');
+      return res.status(403).json({
+        success: false,
+        message: '권한이 없습니다.',
+        data: {},
+      });
     }
 
     post.title = title || post.title;
     post.content = content || post.content;
 
     await post.save();
-    return baseResponse(res, true, '게시글이 성공적으로 수정되었습니다.');
+    return res.status(200).json({
+      success: true,
+      message: '게시글이 성공적으로 수정되었습니다.',
+      data: {},
+    });
   } catch (e) {
     console.error(e);
     return handleError(res, e);
@@ -72,7 +99,13 @@ export const getArticles = async (req, res, next) => {
   });
 
   const { error } = validate(schema, { page }) || {};
-  if (error) return baseResponse(res, false, error);
+  if (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.details[0].message,
+      data: {},
+    });
+  }
 
   const { userNum } = req.body;
 
@@ -124,10 +157,14 @@ export const getArticles = async (req, res, next) => {
       };
     });
 
-    return baseResponse(res, true, '게시글이 정상적으로 조회되었습니다.', {
-      sanitizedPosts: sanitizedPosts,
-      currentPage: page,
-      totalPage: Math.ceil(totalPosts / limit),
+    return res.status(200).json({
+      success: true,
+      message: '게시글이 정상적으로 조회되었습니다.',
+      data: {
+        sanitizedPosts: sanitizedPosts,
+        currentPage: page,
+        totalPage: Math.ceil(totalPosts / limit),
+      },
     });
   } catch (e) {
     console.error(e);
@@ -143,7 +180,13 @@ export const deleteArticle = async (req, res, next) => {
   });
 
   const { error } = validate(schema, req.params) || {};
-  if (error) return baseResponse(res, false, error);
+  if (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.details[0].message,
+      data: {},
+    });
+  }
 
   const { userNum } = req.body;
 
@@ -151,11 +194,19 @@ export const deleteArticle = async (req, res, next) => {
     const post = await Post.findById(articleId);
 
     if (post.author.userNum !== userNum) {
-      return baseResponse(res, false, '권한이 없습니다.');
+      return res.status(403).json({
+        success: false,
+        message: '권한이 없습니다.',
+        data: {},
+      });
     }
 
     await post.remove();
-    return baseResponse(res, true, '게시글이 성공적으로 삭제되었습니다.');
+    return res.status(200).json({
+      success: true,
+      message: '게시글이 성공적으로 삭제되었습니다.',
+      data: {},
+    });
   } catch (e) {
     console.error(e);
     return handleError(res, e);
@@ -169,26 +220,44 @@ export const likeArticle = async (req, res, next) => {
   });
 
   const { error } = validate(schema, req.params) || {};
-  if (error) return baseResponse(res, false, error);
+  if (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.details[0].message,
+      data: {},
+    });
+  }
 
   try {
     const post = await Post.findById(articleId);
     const { userNum } = req.body;
 
     if (!post) {
-      return baseResponse(res, false, '게시글을 찾을 수 없습니다.');
+      return res.status(404).json({
+        success: false,
+        message: '게시글을 찾을 수 없습니다.',
+        data: {},
+      });
     }
 
     const hasLiked = post.likes.some((like) => like.userNum === userNum);
 
     if (hasLiked) {
-      return baseResponse(res, false, '이미 좋아요를 누른 게시글입니다.');
+      return res.status(400).json({
+        success: false,
+        message: '이미 좋아요를 누른 게시글입니다.',
+        data: {},
+      });
     }
 
     post.likes.push({ userNum });
     await post.save();
 
-    return baseResponse(res, true, '게시글에 좋아요가 적용되었습니다.');
+    return res.status(200).json({
+      success: true,
+      message: '게시글에 좋아요가 적용되었습니다.',
+      data: {},
+    });
   } catch (e) {
     console.error(e);
     return handleError(res, e);
@@ -202,7 +271,13 @@ export const unlikeArticle = async (req, res, next) => {
   });
 
   const { error } = validate(schema, req.params) || {};
-  if (error) return baseResponse(res, false, error);
+  if (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.details[0].message,
+      data: {},
+    });
+  }
 
   try {
     const { userNum } = req.body;
@@ -210,12 +285,20 @@ export const unlikeArticle = async (req, res, next) => {
 
     const likeIndex = post.likes.findIndex((like) => like.userNum === userNum);
     if (likeIndex === -1) {
-      return baseResponse(res, false, '좋아요를 누르지 않은 게시글입니다.');
+      return res.status(400).json({
+        success: false,
+        message: '좋아요를 누르지 않은 게시글입니다.',
+        data: {},
+      });
     }
 
     post.likes.splice(likeIndex, 1);
     await post.save();
-    return baseResponse(res, true, '좋아요가 취소되었습니다.');
+    return res.status(200).json({
+      success: true,
+      message: '좋아요가 취소되었습니다.',
+      data: {},
+    });
   } catch (e) {
     console.error(e);
     return handleError(res, e);
