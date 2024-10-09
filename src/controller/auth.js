@@ -99,31 +99,46 @@ export const checkExistUser = async (req, res, next) => {
   let message = '';
   let response = { exists: false, token: null };
 
+  console.log('Step 1: Received userNum:', userNum); // 로그 추가
+
   try {
     const exist = await User.findOne({ userNum });
+    console.log('Step 2: User exists:', !!exist); // 로그 추가
 
     if (exist) {
       response.exists = true;
 
       if (req.headers.authorization) {
         const token = req.headers.authorization.split('Bearer ')[1];
+        console.log('Step 3: Authorization token:', token); // 로그 추가
 
         if (token === undefined) {
           response.token = jwt.sign({ userNum }, process.env.JWT_SECRET, {
             expiresIn: '7d',
           });
+          console.log('Step 4: Generated new token:', response.token); // 로그 추가
         } else {
           try {
             const decoded = generateToken(userNum);
+            console.log('Step 5: Decoded token:', decoded); // 로그 추가
 
             const now = Math.floor(Date.now() / 1000);
 
             if (decoded.exp - now < 60 * 60 * 24) {
               response.token = generateToken(userNum);
+              console.log(
+                'Step 6: Token is expiring soon, generated new token'
+              );
             }
           } catch (e) {
+            console.error('Token error:', e); // 토큰 관련 오류 로그
+
             if (e.name === 'TokenExpiredError') {
               response.token = generateToken(userNum);
+              console.log(
+                'Generated new token after expiration:',
+                response.token
+              );
             } else {
               message = '[서버오류] 토큰 생성에 실패했습니다.';
               return baseResponse(res, false, message, { response });
@@ -132,16 +147,21 @@ export const checkExistUser = async (req, res, next) => {
         }
       } else {
         response.token = generateToken(userNum);
+        console.log(
+          'Step 7: Generated token without Authorization header:',
+          response.token
+        );
       }
     }
 
     message = '유저정보 조회를 성공했습니다.';
+    console.log('Step 8: Final response:', response); // 최종 응답 로그
     return baseResponse(res, true, message, { response });
   } catch (e) {
+    console.error('Error occurred:', e); // 전체적인 오류 처리 로그
     return handleError(res, e);
   }
 };
-
 export const getUserInfo = async (req, res, next) => {
   const { userNum } = req.params;
 
