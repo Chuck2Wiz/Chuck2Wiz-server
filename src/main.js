@@ -9,9 +9,9 @@ import morgan from 'morgan';
 
 const { PORT, MONGO_URI } = process.env;
 
-console.log('MONGO_URI:', MONGO_URI); // 수정: process.env.MONGO_URI를 MONGO_URI로 변경하여 가독성 향상
+console.log('MONGO_URI:', MONGO_URI); // MONGO_URI를 출력
 
-mongoose.set('strictQuery', true);
+mongoose.set('strictQuery', true); // strictQuery 설정
 
 mongoose
   .connect(MONGO_URI)
