@@ -236,15 +236,27 @@ export const getArticle = async (req, res, next) => {
 
   const { articleId } = req.params;
 
+  if (!mongoose.Types.ObjectId.isValid(articleId)) {
+    return baseResponse(res, false, '유효하지 않은 게시글 ID입니다.');
+  }
+
   try {
-    const post = await Post.findOne({ id: articleId });
+    const post = await Post.findOne({ _id: mongoose.Types.ObjectId(articleId) })
+      .populate({
+        path: 'comments',
+        populate: {
+          path: 'replies',
+          model: 'Comment',
+        },
+      })
+      .exec();
 
     if (!post) {
       return baseResponse(res, false, '게시글을 찾을 수 없습니다.');
     }
 
     const sanitizedPost = {
-      id: post.id,
+      _id: post._id,
       title: post.title,
       content: post.content,
       author: {
