@@ -15,10 +15,13 @@ router.put('/:articleId', articles.updatedArticle);
 // DELETE /articles/:articleId
 router.delete('/:articleId', articles.deleteArticle);
 
-// POST /article/:articleId/like
+// POST /articles/:articleId/like
 router.post('/:articleId/like', articles.likeArticle);
 
-// POST /article/:articleId/unlike
+// POST /articles/:articleId/unlike
 router.post('/:articleId/unlike', articles.unlikeArticle);
+
+// GET /articles/id/:articleId
+router.get('/id/:articleId', articles.getArticle);
 
 export default router;

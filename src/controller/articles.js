@@ -1,7 +1,8 @@
-import Joi from 'joi';
+import Joi, { valid } from 'joi';
 import Post from '../models/post';
 import { handleError, validate } from './common/errorhandle';
 import { baseResponse } from './common/baseResponse';
+import mongoose from 'mongoose';
 
 export const createArticle = async (req, res, next) => {
   const schema = Joi.object({
@@ -96,7 +97,7 @@ export const getArticles = async (req, res, next) => {
       const userLiked = post.likes.some((like) => like.userNum === userNum);
 
       return {
-        _id: post._id,
+        id: post.id,
         title: post.title,
         content: post.content,
         author: {
@@ -216,6 +217,62 @@ export const unlikeArticle = async (req, res, next) => {
     post.likes.splice(likeIndex, 1);
     await post.save();
     return baseResponse(res, true, '좋아요가 취소되었습니다.');
+  } catch (e) {
+    console.error(e);
+    return handleError(res, e);
+  }
+};
+
+export const getArticle = async (req, res, next) => {
+  const schema = Joi.object({
+    articleId: Joi.string().required(),
+  });
+
+  const { error } = schema.validate(req.params) || {};
+
+  if (error) {
+    return baseResponse(res, false, 'ERROR');
+  }
+
+  const { articleId } = req.params;
+
+  try {
+    const post = await Post.findOne({ id: articleId });
+
+    if (!post) {
+      return baseResponse(res, false, '게시글을 찾을 수 없습니다.');
+    }
+
+    const sanitizedPost = {
+      id: post.id,
+      title: post.title,
+      content: post.content,
+      author: {
+        nick: post.author.nick,
+      },
+      likes: post.likes.length,
+      comments: post.comments.map((comment) => ({
+        ...comment.toObject(),
+        author: {
+          nick: comment.author.nick,
+        },
+        replies: comment.replies.map((reply) => ({
+          ...reply.toObject(),
+          author: {
+            nick: reply.author.nick,
+          },
+        })),
+      })),
+      createdAt: post.createdAt,
+      updatedAt: post.updatedAt,
+    };
+
+    return baseResponse(
+      res,
+      true,
+      '게시글이 정상적으로 조회되었습니다.',
+      sanitizedPost
+    );
   } catch (e) {
     console.error(e);
     return handleError(res, e);

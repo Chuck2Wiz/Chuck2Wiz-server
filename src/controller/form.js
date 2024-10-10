@@ -1,4 +1,4 @@
-import Form from '../models/Form';
+import Form from '../models/form';
 import { baseResponse } from './common/baseResponse';
 import { handleError } from './common/errorhandle';
 
