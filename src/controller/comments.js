@@ -3,6 +3,7 @@ import Post from '../models/post';
 import Comment from '../models/comment';
 import { handleError, validate } from './common/errorhandle';
 import { baseResponse } from './common/baseResponse';
+import mongoose from 'mongoose';
 
 export const createComment = async (req, res, next) => {
   const schema = Joi.object({
@@ -20,11 +21,10 @@ export const createComment = async (req, res, next) => {
   const { postId, author, content } = req.body;
 
   try {
-    const post = await Post.findById(postId);
-
-    if (!post) {
-      return baseResponse(res, false, '게시글을 찾을 수 없습니다.');
+    if (!mongoose.Types.ObjectId.isValid(postId)) {
+      return baseResponse(res, false, '유효하지 않은 게시글 ID입니다.');
     }
+    const post = await Post.findOne({ _id: mongoose.Types.ObjectId(postId) });
 
     const comment = new Comment({ postId, author, content, replies: [] });
     await comment.save();
