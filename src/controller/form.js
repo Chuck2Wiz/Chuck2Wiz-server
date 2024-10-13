@@ -24,3 +24,22 @@ export const searchForm = async (req, res, next) => {
     return handleError(res, e);
   }
 };
+
+export const getForms = async (req, res, next) => {
+  try {
+    const forms = await Form.find().exec();
+
+    const responseForms = forms.map((form) => {
+      return {
+        option: form.option,
+      };
+    });
+
+    return baseResponse(res, true, '정상적으로 조회되었습니다.', {
+      responseForms,
+    });
+  } catch (e) {
+    console.error(e);
+    return handleError(res, e);
+  }
+};
