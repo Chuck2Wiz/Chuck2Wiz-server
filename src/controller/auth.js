@@ -160,6 +160,31 @@ export const getUserInfo = async (req, res, next) => {
   }
 };
 
+export const deleteUser = async (req, res, next) => {
+  const schema = Joi.object({
+    userNum: Joi.string().required(),
+  });
+
+  try {
+    const { error } = schema.validate(req.body) || {};
+    if (error) {
+      return baseResponse(res, false, error.details[0].message);
+    }
+
+    const { userNum } = req.body;
+
+    const user = await User.findOne({ userNum });
+    if (!user) {
+      return baseResponse(res, false, '존재하지 않는 회원입니다.');
+    }
+
+    await User.findOneAndDelete({ userNum });
+    return baseResponse(res, true, '회원탈퇴에 성공했습니다.');
+  } catch (e) {
+    return handleError(res, e);
+  }
+};
+
 const generateToken = ({ userNum }) => {
   return jwt.sign({ userNum }, process.env.JWT_SECRET, {
     expiresIn: '7d',

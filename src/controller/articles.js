@@ -66,16 +66,8 @@ export const updatedArticle = async (req, res, next) => {
 
 export const getArticles = async (req, res, next) => {
   const { page = 1 } = req.params;
+  const { userNum } = req.params;
   const limit = 10;
-
-  const schema = Joi.object({
-    userNum: Joi.string().required(),
-  });
-
-  const { error } = validate(schema, { page }) || {};
-  if (error) return baseResponse(res, false, error);
-
-  const { userNum } = req.body;
 
   try {
     const posts = await Post.find()
@@ -224,16 +216,6 @@ export const unlikeArticle = async (req, res, next) => {
 };
 
 export const getArticle = async (req, res, next) => {
-  const schema = Joi.object({
-    articleId: Joi.string().required(),
-  });
-
-  const { error } = schema.validate(req.params) || {};
-
-  if (error) {
-    return baseResponse(res, false, 'ERROR');
-  }
-
   const { articleId } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(articleId)) {
@@ -285,6 +267,63 @@ export const getArticle = async (req, res, next) => {
       '게시글이 정상적으로 조회되었습니다.',
       sanitizedPost
     );
+  } catch (e) {
+    console.error(e);
+    return handleError(res, e);
+  }
+};
+
+export const getArticleByUser = async (req, res, next) => {
+  const { userNum } = req.params;
+  const { page = 1 } = req.query; // 페이지네이션을 위한 page 매개변수
+  const limit = 10; // 한 페이지당 10개의 게시글 조회
+
+  try {
+    // userNum을 기반으로 게시글 조회
+    const posts = await Post.find({ 'author.userNum': userNum })
+      .sort({ createdAt: -1 }) // 최신순 정렬
+      .skip((page - 1) * limit) // 페이지네이션 처리
+      .limit(limit) // 한 번에 보여줄 게시글 수 제한
+      .populate({
+        path: 'comments',
+        populate: {
+          path: 'replies',
+          model: 'Comment',
+        },
+      })
+      .exec();
+
+    const totalPosts = await Post.countDocuments({ 'author.userNum': userNum }); // 총 게시글 수
+
+    const sanitizedPosts = posts.map((post) => ({
+      id: post._id,
+      title: post.title,
+      content: post.content,
+      author: {
+        nick: post.author.nick,
+      },
+      likes: post.likes.length,
+      comments: post.comments.map((comment) => ({
+        ...comment.toObject(),
+        author: {
+          nick: comment.author.nick,
+        },
+        replies: comment.replies.map((reply) => ({
+          ...reply.toObject(),
+          author: {
+            nick: reply.author.nick,
+          },
+        })),
+      })),
+      createdAt: post.createdAt,
+      updatedAt: post.updatedAt,
+    }));
+
+    return baseResponse(res, true, '게시글이 정상적으로 조회되었습니다.', {
+      posts: sanitizedPosts,
+      currentPage: page,
+      totalPages: Math.ceil(totalPosts / limit),
+    });
   } catch (e) {
     console.error(e);
     return handleError(res, e);

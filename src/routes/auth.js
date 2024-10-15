@@ -15,4 +15,7 @@ router.get('/check-existUser/:userNum', auth.checkExistUser);
 // Get /auth/user/:userNum
 router.get('/user/:userNum', auth.getUserInfo);
 
+// DELETE /auth/deleteUser
+router.delete('/deleteUser', auth.deleteUser);
+
 export default router;

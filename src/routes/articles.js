@@ -7,7 +7,7 @@ const router = Router();
 router.post('', articles.createArticle);
 
 // GET /articles (with pagination)
-router.get('/:page', articles.getArticles);
+router.get('/:page/:userNum', articles.getArticles);
 
 // PUT /articles/:articleId
 router.put('/:articleId', articles.updatedArticle);
@@ -23,5 +23,8 @@ router.post('/:articleId/unlike', articles.unlikeArticle);
 
 // GET /articles/id/:articleId
 router.get('/id/:articleId', articles.getArticle);
+
+// Get /articles/my/:page/:userNum
+router.get('/my/:page/:userNum', articles.getArticleByUser);
 
 export default router;
