@@ -22,7 +22,7 @@ router.post('/:articleId/like', articles.likeArticle);
 router.post('/:articleId/unlike', articles.unlikeArticle);
 
 // GET /articles/id/:articleId
-router.get('/id/:articleId', articles.getArticle);
+router.get('/id/:articleId/:userNum', articles.getArticle);
 
 // Get /articles/my/:page/:userNum
 router.get('/my/:page/:userNum', articles.getArticleByUser);

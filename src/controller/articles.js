@@ -216,14 +216,14 @@ export const unlikeArticle = async (req, res, next) => {
 };
 
 export const getArticle = async (req, res, next) => {
-  const { articleId } = req.params;
+  const { articleId, userNum } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(articleId)) {
     return baseResponse(res, false, '유효하지 않은 게시글 ID입니다.');
   }
 
   try {
-    const post = await Post.findOne({ _id: mongoose.Types.ObjectId(articleId) })
+    const post = await Post.findById(articleId)
       .populate({
         path: 'comments',
         populate: {
@@ -237,28 +237,34 @@ export const getArticle = async (req, res, next) => {
       return baseResponse(res, false, '게시글을 찾을 수 없습니다.');
     }
 
+    const userLiked = post.likes.some((like) => like.userNum === userNum);
+
     const sanitizedPost = {
-      _id: post._id,
+      id: post._id,
       title: post.title,
       content: post.content,
       author: {
         nick: post.author.nick,
       },
       likes: post.likes.length,
+      isLikedByUser: userLiked,
       comments: post.comments.map((comment) => ({
         ...comment.toObject(),
         author: {
           nick: comment.author.nick,
         },
+        isMyComment: comment.author.userNum === userNum,
         replies: comment.replies.map((reply) => ({
           ...reply.toObject(),
           author: {
             nick: reply.author.nick,
           },
+          isMyReply: reply.author.userNum === userNum,
         })),
       })),
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,
+      isMyArticle: post.author.userNum === userNum,
     };
 
     return baseResponse(
