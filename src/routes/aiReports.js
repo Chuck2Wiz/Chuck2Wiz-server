@@ -7,6 +7,9 @@ const router = Router();
 router.post('', aiReports.saveAiReport);
 
 // GET /aiReports/:userNum
-router.get('/:userNum', aiReports.getAiReport);
+router.get('/:userNum', aiReports.getAiReports);
+
+// Get /aiReports/:userNum/:aiReportId
+router.get('/:userNum/:aiReportId', aiReports.getAiReportById);
 
 export default router;

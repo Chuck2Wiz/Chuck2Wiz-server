@@ -50,7 +50,7 @@ export const saveAiReport = async (req, res, next) => {
   }
 };
 
-export const getAiReport = async (req, res, next) => {
+export const getAiReports = async (req, res, next) => {
   const { userNum } = req.params;
 
   try {
@@ -67,6 +67,40 @@ export const getAiReport = async (req, res, next) => {
     });
   } catch (e) {
     console.error(e);
+    return handleError(res, e);
+  }
+};
+
+export const getAiReportById = async (req, res, next) => {
+  const { aiReportId, userNum } = req.params;
+
+  // ID 유효성 검사
+  if (!mongoose.Types.ObjectId.isValid(aiReportId)) {
+    return baseResponse(res, false, '유효하지 않는 레포트 ID입니다.');
+  }
+
+  try {
+    // 유저를 찾기
+    const user = await User.findOne({ userNum: userNum });
+
+    if (!user) {
+      return baseResponse(res, false, '유저를 찾을 수 없습니다.');
+    }
+
+    // 유저의 aiReport 배열에서 특정 ID를 가진 레포트를 찾기
+    const aiReport = user.aiReport.find(
+      (report) => report._id.toString() === aiReportId
+    );
+
+    if (!aiReport) {
+      return baseResponse(res, false, '해당 레포트를 찾을 수 없습니다.');
+    }
+
+    return baseResponse(res, true, 'AI 레포트 조회를 성공했습니다.', {
+      aiReport,
+    });
+  } catch (e) {
+    console.error('Error retrieving AI report:', e);
     return handleError(res, e);
   }
 };
