@@ -12,6 +12,16 @@ const userSchema = new Schema(
       required: true,
     },
     favorite: [{ type: String, minlength: 1, maxlength: 30 }],
+    aiReport: [
+      {
+        data: {
+          selectOption: { type: String },
+          formData: [{ type: String }],
+          answerData: [{ type: String }],
+          reportValue: { type: String },
+        },
+      },
+    ],
   },
   { timestamps: true }
 );
