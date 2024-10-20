@@ -62,7 +62,9 @@ export const getAiReport = async (req, res, next) => {
 
     const aiReports = user.aiReport;
 
-    return baseResponse(res, true, 'AI 레포트 조회를 성공했습니다.');
+    return baseResponse(res, true, 'AI 레포트 조회를 성공했습니다.', {
+      aiReports,
+    });
   } catch (e) {
     console.error(e);
     return handleError(res, e);
